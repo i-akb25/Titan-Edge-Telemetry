@@ -1,6 +1,6 @@
 
 # <img src="titan-web/public/titan-logo.png" width="45" align="left" /> Titan OS: Industrial Edge Telemetry & Predictive AI
-
+![GitHub repo size](https://img.shields.io/github/repo-size/i-akb25/Titan-Edge-Telemetry?color=ff69b4&style=flat-square) ![GitHub stars](https://img.shields.io/github/stars/i-akb25/Titan-Edge-Telemetry?style=social) ![GitHub last commit](https://img.shields.io/github/last-commit/i-akb25/Titan-Edge-Telemetry?color=ff69b4&style=flat-square) [![GitHub repo](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/i-akb25/Titan-Edge-Telemetry)
 <br>
 
 A full-stack Industrial IoT (IIoT) command center engineered to bridge the gap between heavy physical machinery and real-time web monitoring. Built for high-capacity industrial environments, Titan OS utilizes edge computing concepts to stream high-frequency telemetry and leverages embedded Machine Learning to predict catastrophic machine failure before it occurs.
@@ -82,9 +82,23 @@ Open `http://localhost:5173` in your browser and click **Start Plant** to initia
 ---
 
 ## 📸 Interface Preview
+<img width="1441" height="804" alt="MSPOWERBI-1" src="https://github.com/user-attachments/assets/74e09114-7800-456a-b8b5-9d3e5e64c4d8" />
+<img width="1441" height="806" alt="MSPOWERBI-2" src="https://github.com/user-attachments/assets/54411b9d-c3f6-4086-8220-6dbaeef7a69c" />
+<img width="1897" height="968" alt="DASHBOARD-STABLE" src="https://github.com/user-attachments/assets/ff5fa6f4-87e8-4016-91e9-d594b5d4d6e1" />
+<img width="1897" height="966" alt="DASHBOARD-CRITICAL" src="https://github.com/user-attachments/assets/be7200c3-514e-498d-b848-21549b16212e" />
+<img width="1899" height="966" alt="DASHBOARD-CRITICAL (2)" src="https://github.com/user-attachments/assets/609dd61c-5567-44be-93e1-5702ba0bfa99" />
 
-## *(Upload a screenshot of your running dashboard to this repository and name it `dashboard.png` to display it here!)*
+--- 
 
+## 🤝 Contributing
+Contributions are welcome! 🖍️  
+- Fork this repository.  
+- Create a new branch for your feature or bug fix.  
+- Submit a pull request with a clear explanation of your changes.  
+
+Let’s make this command centre even more awesome! 🚀
+
+---
 ## 📜 License
 
 This project is licensed under the MIT License.
@@ -96,6 +110,14 @@ This project is licensed under the MIT License.
 **Electrical Engineer & Full-Stack Developer**
 
 * **GitHub:** [@i-akb25](https://www.google.com/search?q=https://github.com/i-akb25)
+---
+## 📧 Contact
+For inquiries or collaboration, feel free to reach out:  
+📩 **Email**: [anuragaryanofficial@gmail.com](mailto:anuragaryanofficial@gmail.com)
+
+---
+
+Made with ❤️ by **Anurag Aryan** ✨
 
 *Built to explore the intersection of full-stack web technologies, embedded edge systems, and heavy industrial automation.*
 
