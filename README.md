@@ -11,7 +11,16 @@ A full-stack Industrial IoT (IIoT) command center engineered to bridge the gap b
 * **Predictive Time-To-Failure (TTF):** A background Python daemon continuously analyzes thermal acceleration trajectories using linear regression to predict impending thermal runaway events.
 * **Containerized Infrastructure:** Orchestrated using Docker. The Node API, Python hardware simulator, and MySQL database run securely in an isolated, OS-agnostic Linux network.
 * **Process Lifecycle Control:** The React dashboard natively boots, monitors, and terminates backend hardware daemons using OS-level process management (`spawn`, `SIGKILL`).
-* **Data Integration:** Includes PowerBI dashboards (`Telemetry.pbix`) for historical trend analysis and batch data loading scripts (`load_to_mysql.py`).
+
+---
+
+## 📊 Data Pipeline & Analytics (SQL & Power BI)
+
+Beyond real-time streaming, Titan OS is equipped with a robust historical data pipeline designed for long-term plant analytics and business intelligence.
+
+* **Relational Architecture (`init.sql`):** The system relies on a containerized MySQL 8.0 database, automatically provisioned with optimized schemas for high-throughput, time-series machine data.
+* **Batch Ingestion (`load_to_mysql.py`):** A dedicated Python ETL script designed to parse, clean, and load massive CSV telemetry logs directly into the relational database.
+* **Business Intelligence (`Telemetry.pbix`):** Includes a complete Microsoft Power BI dashboard for historical trend analysis. This allows plant managers to visualize long-term thermal degradation and cross-reference vibration anomalies across different operational shifts.
 
 ---
 
@@ -20,7 +29,7 @@ A full-stack Industrial IoT (IIoT) command center engineered to bridge the gap b
 * **Frontend:** React.js, Vite, Recharts (Dual-axis rendering)
 * **Backend:** Node.js, Express, WebSockets (`server.js`)
 * **Edge ML / Simulator:** Python, Pandas, NumPy (`telemetry_simulator.py`, `live_telemetry.py`)
-* **Database:** MySQL 8.0 (`init.sql`)
+* **Database / ETL:** MySQL 8.0, Python Connector
 * **DevOps:** Docker, Docker Compose
 * **Business Intelligence:** Microsoft Power BI
 
@@ -74,9 +83,7 @@ Open `http://localhost:5173` in your browser and click **Start Plant** to initia
 
 ## 📸 Interface Preview
 
-*(Upload a screenshot of your running dashboard to this repository and name it `dashboard.png` to display it here!)*
-
----
+## *(Upload a screenshot of your running dashboard to this repository and name it `dashboard.png` to display it here!)*
 
 ## 📜 License
 
