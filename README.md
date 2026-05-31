@@ -39,7 +39,7 @@ Beyond real-time streaming, Titan OS is equipped with a robust historical data p
 
 **1. Clone the repository**
 ```bash
-git clone [https://github.com/i-akb25/Titan-Edge-Telemetry.git](https://github.com/i-akb25/Titan-Edge-Telemetry.git)
+git clone https://github.com/i-akb25/Titan-Edge-Telemetry.git
 cd Titan-Edge-Telemetry
 
 ```
