@@ -1,4 +1,4 @@
-```
+
 # <img src="titan-web/public/titan-logo.png" width="45" align="left" /> Titan OS: Industrial Edge Telemetry & Predictive AI
 
 <br>
