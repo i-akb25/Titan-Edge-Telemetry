@@ -121,4 +121,3 @@ Made with ❤️ by **Anurag Aryan** ✨
 
 *Built to explore the intersection of full-stack web technologies, embedded edge systems, and heavy industrial automation.*
 
-```
