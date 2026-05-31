@@ -93,5 +93,3 @@ This project is licensed under the MIT License.
 *Built to explore the intersection of full-stack web technologies, embedded edge systems, and heavy industrial automation.*
 
 ```
-
-```
