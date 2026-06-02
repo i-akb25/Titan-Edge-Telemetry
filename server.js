@@ -1,152 +1,135 @@
+require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
-const { spawn, exec } = require('child_process');
-const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
+const mysql = require('mysql2');
+const cors = require('cors');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// --- DATABASE CONNECTION (Dynamically loaded from Docker or Local) ---
-const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3308,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Saurabh@845438',
-    database: process.env.DB_NAME || 'titan_manufacturing',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+app.use(cors());
+app.use(express.json());
 
-let pythonProcess = null;
+let plantStatus = 'STOPPED';
 
-function broadcast(data) {
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
-        }
-    });
+const dbUri = process.env.DATABASE_URL;
+if (!dbUri) {
+  console.error('Critical Error: DATABASE_URL variable is missing.');
+  process.exit(1);
 }
 
-// --- HARDWARE PROCESS CONTROL ---
-app.post('/api/control/start', (req, res) => {
-    if (pythonProcess) {
-        return res.status(400).json({ status: 'running', message: 'Engine is already running.' });
-    }
-    
-    // Cross-platform Python execution
-    const pythonExecutable = process.env.PYTHON_CMD || path.join(__dirname, '.venv', 'Scripts', 'python.exe');
-    const pythonScript = process.env.OS_ENV === 'linux' ? 'live_telemetry.py' : path.join(__dirname, 'live_telemetry.py');
-    
-    pythonProcess = spawn(pythonExecutable, [pythonScript], { 
-        cwd: __dirname,
-        windowsHide: true,
-        env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
-    });
-    
-    pythonProcess.stdout.on('data', (data) => {
-        const lines = data.toString().split('\n');
-        lines.forEach((line) => {
-            if (!line.trim()) return;
-            try {
-                const parsedData = JSON.parse(line);
-                broadcast({ type: 'TELEMETRY_UPDATE', data: parsedData });
-
-                const query = `INSERT INTO telemetry_logs 
-                    (Timestamp, Vibration, Temperature, Fault_Occurred, Time_To_Failure) 
-                    VALUES (?, ?, ?, ?, ?)`;
-                
-                db.query(query, [
-                    parsedData.Timestamp,
-                    parsedData.Vibration,
-                    parsedData.Temperature,
-                    parsedData.Fault_Occurred,
-                    parsedData.Time_To_Failure
-                ], (err) => {
-                    if (err) console.error("DB Insert Error:", err);
-                });
-
-            } catch (e) {
-                console.log(`Engine Output: ${line}`);
-            }
-        });
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-        console.error(`Engine Error: ${data}`);
-    });
-    
-    pythonProcess.on('close', (code) => {
-        console.log(`Python engine stopped with code ${code}`);
-        pythonProcess = null; 
-        broadcast({ type: 'ENGINE_STATUS', status: 'stopped' });
-    });
-
-    broadcast({ type: 'ENGINE_STATUS', status: 'running' });
-    res.json({ status: 'running', message: 'Titan Engine Started.' });
+const pool = mysql.createPool({
+  uri: dbUri,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-app.post('/api/control/stop', (req, res) => {
-    if (!pythonProcess) {
-        return res.status(400).json({ status: 'stopped', message: 'Engine is already stopped.' });
-    }
-    
-    // Cross-platform Process Killing
-    if (process.env.OS_ENV === 'linux') {
-        pythonProcess.kill('SIGKILL');
-        pythonProcess = null;
-        broadcast({ type: 'ENGINE_STATUS', status: 'stopped' });
-        res.json({ status: 'stopped', message: 'Titan Engine Shut Down.' });
-    } else {
-        exec(`taskkill /pid ${pythonProcess.pid} /t /f`, (err) => {
-            if (err) console.error(`Failed to kill process: ${err}`);
-            pythonProcess = null;
-            broadcast({ type: 'ENGINE_STATUS', status: 'stopped' });
-            res.json({ status: 'stopped', message: 'Titan Engine Shut Down forcefully.' });
-        });
-    }
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error('Database connection failed:', err.message);
+  } else {
+    console.log('Connected to Secure Database Cluster.');
+    connection.release();
+  }
 });
 
-app.get('/api/control/status', (req, res) => {
-    res.json({ status: pythonProcess ? 'running' : 'stopped' });
-});
-
-app.post('/api/control/purge', (req, res) => {
-    const query = 'TRUNCATE TABLE telemetry_logs';
-    db.query(query, (err) => {
-        if (err) return res.status(500).json({ error: "Failed to purge database" });
-        res.json({ status: 'purged', message: 'Database wiped clean.' });
-    });
-});
-
-app.get('/api/telemetry/latest', (req, res) => {
-    const query = 'SELECT * FROM telemetry_logs ORDER BY Timestamp DESC LIMIT 30';
-    db.query(query, (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        res.json(results.reverse());
-    });
-});
-
-app.get('/api/telemetry/faults', (req, res) => {
-    const query = 'SELECT * FROM telemetry_logs WHERE Fault_Occurred = 1 ORDER BY Timestamp DESC LIMIT 50';
-    db.query(query, (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        res.json(results);
-    });
-});
-
+let activeClients = new Set();
 wss.on('connection', (ws) => {
-    ws.send(JSON.stringify({ type: 'ENGINE_STATUS', status: pythonProcess ? 'running' : 'stopped' }));
+  activeClients.add(ws);
+  ws.on('close', () => activeClients.delete(ws));
 });
 
-const PORT = 5000;
-server.listen(PORT, () => {
-    console.log(`📡 Titan Server running on http://localhost:${PORT}`);
+const broadcastTelemetry = (data) => {
+  const payload = JSON.stringify(data);
+  activeClients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) client.send(payload);
+  });
+};
+
+app.post('/api/telemetry/ingest', (req, res) => {
+  if (plantStatus !== 'RUNNING') {
+    return res.status(403).json({ error: 'Ingestion blocked: Plant is STOPPED.' });
+  }
+
+  // 1. Extract ALL data points from the Python Hardware Node
+  const { 
+    machine_id, temperature, vibration, voltage, current, 
+    power_consumption_kw, faults, error_code, ttf_status 
+  } = req.body;
+
+  // 2. Build the complete telemetry frame
+  const telemetryFrame = {
+    machine_id: machine_id || "Unknown-Machine",
+    temperature: parseFloat(temperature) || 0.0,
+    vibration: parseFloat(vibration) || 0.0,
+    voltage: parseFloat(voltage) || 0.0,
+    current: parseFloat(current) || 0.0,
+    power_consumption_kw: parseFloat(power_consumption_kw) || 0.0,
+    faults: parseInt(faults) || 0,
+    error_code: error_code || "NONE",
+    ttf_status: ttf_status || 'STABLE'
+  };
+
+  // 3. Broadcast full frame to React UI (fixes the Unknown-Machine bug)
+  broadcastTelemetry(telemetryFrame);
+
+  // 4. Log the full electrical and mechanical profile to Cloud MySQL
+  const query = `
+    INSERT INTO telemetry_logs 
+    (machine_id, temperature, vibration, voltage, current, power_consumption_kw, faults, error_code, ttf_status, timestamp) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+  `;
+  
+  const values = [
+    telemetryFrame.machine_id, 
+    telemetryFrame.temperature, 
+    telemetryFrame.vibration, 
+    telemetryFrame.voltage, 
+    telemetryFrame.current, 
+    telemetryFrame.power_consumption_kw, 
+    telemetryFrame.faults, 
+    telemetryFrame.error_code, 
+    telemetryFrame.ttf_status
+  ];
+
+  pool.query(query, values, (err) => {
+    if (err) console.error('Database write fault:', err.message);
+  });
+
+  return res.status(201).json({ status: 'SUCCESS', frame: telemetryFrame });
+});
+
+app.get('/api/status', (req, res) => {
+  return res.json({ status: plantStatus });
+});
+
+app.post('/api/start', (req, res) => {
+  plantStatus = 'RUNNING';
+  console.log('System Control: PLANT STARTED');
+  return res.status(200).json({ status: plantStatus });
+});
+
+app.post('/api/stop', (req, res) => {
+  plantStatus = 'STOPPED';
+  console.log('System Control: EMERGENCY STOP ACTIVATED');
+  return res.status(200).json({ status: plantStatus });
+});
+
+app.post('/api/purge', (req, res) => {
+  const query = 'TRUNCATE TABLE telemetry_logs';
+  pool.query(query, (err) => {
+    if (err) {
+      console.error('Purge error:', err.message);
+      return res.status(500).json({ error: 'Purge operation rejected' });
+    }
+    return res.status(200).json({ status: 'PURGED' });
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server operational on port ${PORT}`);
 });

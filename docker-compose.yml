@@ -1,35 +1,33 @@
 version: '3.8'
 
 services:
-  # 1. The Backend Application (Node + Python)
-  titan-api:
-    build: .
-    restart: unless-stopped
+  titan-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
     ports:
       - "5000:5000"
-    environment:
-      - DB_HOST=titan-db
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=Saurabh@845438
-      - DB_NAME=titan_manufacturing
-      - PYTHON_CMD=python3
-      - OS_ENV=linux
-    depends_on:
-      - titan-db
-
-  # 2. The Database
-  titan-db:
-    image: mysql:8.0
+    env_file:
+      - .env
     restart: unless-stopped
-    ports:
-      - "3309:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=Saurabh@845438
-      - MYSQL_DATABASE=titan_manufacturing
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - titan-network
 
-volumes:
-  db_data:
+  titan-hardware-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    env_file:
+      - .env
+    environment:
+      # This forces Python to talk to the Node container, not itself
+      - API_URL=http://titan-backend:5000/api/telemetry/ingest
+    depends_on:
+      - titan-backend
+    restart: unless-stopped
+    networks:
+      - titan-network
+
+networks:
+  titan-network:
+    driver: bridge

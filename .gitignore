@@ -1,0 +1,15 @@
+# Node & Dependencies
+node_modules/
+package-lock.json
+
+# Python & Environments
+__pycache__/
+.venv/
+env/
+
+# Environment Variables (SECRET)
+.env
+
+# System Files
+.DS_Store
+Thumbs.db
