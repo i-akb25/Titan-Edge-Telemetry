@@ -142,7 +142,8 @@ Contributions are welcome! 🖍️
 
 Let’s make this command centre even more awesome! 🚀
 ---
-##🙏 Acknowledgements & Tech Stack
+
+## 🙏 Acknowledgements & Tech Stack
 
 This project was made possible by several incredible open-source tools:
 - React.js - Smart Client UI
@@ -162,7 +163,7 @@ This project is licensed under the MIT License.
 **Anurag Aryan | Electrical Engineer & Full-Stack Developer**
 For inquiries or collaboration, feel free to reach out:  
 * **GitHub:** [@i-akb25](https://www.google.com/search?q=https://github.com/i-akb25)
-📩 **Email**: [anuragaryanofficial@gmail.com](mailto:anuragaryanofficial@gmail.com)
+* 📩 **Email**: [anuragaryanofficial@gmail.com](mailto:anuragaryanofficial@gmail.com)
 
 ---
 
