@@ -168,6 +168,7 @@ For inquiries or collaboration, feel free to reach out:
 ---
 
 Made with ❤️ by **Anurag Aryan** ✨
+<br>
 *If you are a recruiter or engineering manager, feel free to reach out to discuss this architecture, my data modeling process, or potential opportunities.*
 *Built to explore the intersection of full-stack web technologies, embedded edge systems, and heavy industrial automation.*
 
