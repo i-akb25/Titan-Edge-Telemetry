@@ -2,10 +2,21 @@ import os
 import sys
 import time
 import requests
+import threading        
+import http.server      
+import socketserver
 from dotenv import load_dotenv
 import telemetry_simulator
 
 load_dotenv()
+
+def start_dummy_server():
+    port = int(os.environ.get("PORT", 10000))
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", port), Handler) as httpd:
+        httpd.serve_forever()
+
+threading.Thread(target=start_dummy_server, daemon=True).start()
 
 env_url = os.getenv("API_URL", "http://localhost:5000/api/telemetry/ingest")
 BASE_URL = env_url.split("/api/")[0]
